@@ -12,6 +12,6 @@ pub const WHEELBASE : unit::Unit = unit::Unit::new(
     unit::UnitType::Meters
 );
 
-pub const TRAJECTORY_KEY : &str = "/cev/planning/ref_trajectory";
-pub const ACKERMANN_KEY : &str = "/cev/commands/control";
-pub const POSE_KEY : &str = "/cev/localization/pose";
+pub const TRAJECTORY_KEY : &str = "cev/planning/ref_trajectory";
+pub const ACKERMANN_KEY : &str = "cev/commands/control";
+pub const POSE_KEY : &str = "cev/localization/pose";
