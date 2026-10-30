@@ -1,4 +1,4 @@
-
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnitType {
@@ -27,5 +27,20 @@ impl Unit {
             UnitType::Feet => self.raw * 0.3048,
             UnitType::Inches => self.raw * 0.0254,
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct Speed {
+    pub raw: f64,
+}
+
+impl Speed {
+    pub const fn new(raw: f64) -> Self {
+        Speed { raw }
+    }
+
+    pub fn to_meters_per_second(&self) -> f64 {
+        self.raw
     }
 }

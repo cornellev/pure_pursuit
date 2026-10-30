@@ -15,15 +15,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("opening zenoh session...");
 
     let mut trajectory: Option<Vec<loc::Pose>> = None;
+    let mut speed: f64 = config::DEFAULT_SPEED.to_meters();
 
 
     let session = zenoh::open(zenoh::Config::default()).await.unwrap();
 
     let traj_sub = session.declare_subscriber(config::TRAJECTORY_KEY).await?;
     let pose_sub = session.declare_subscriber(config::POSE_KEY).await?;
+    let speed_sub = session.declare_subscriber(config::SPEED_KEY).await?;
 
     loop {
         tokio::select! {
+            result = speed_sub.recv_async() => {
+                let Ok(sample) = result else {
+                    eprintln!("speed subscription error: {:?}", result);
+                    break;
+                };
+
+                let payload = sample.payload().to_bytes();
+
+                match serde_json::from_slice::<unit::Speed>(&payload) {
+                    Ok(new_speed) => {
+                        speed = unit::Unit::new(new_speed.to_meters_per_second(), unit::UnitType::Meters).to_meters();
+                        println!("updated speed to: {:?}", speed);
+                    }
+                    Err(e) => {
+                        eprintln!("failed to deserialize speed: {:?}", e);
+                    }
+                }
+            }
+
             result = traj_sub.recv_async() => {
                 let Ok(sample) = result else {
                     eprintln!("trajectory subscription error: {:?}", result);
@@ -66,11 +87,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     }
                 };
 
-                let steering_angle = pure_pursuit::pure_pursuit(pose, traj.clone());
+                let mut steering_angle = pure_pursuit::pure_pursuit(pose, traj.clone());
+                
+                steering_angle = steering_angle.clamp(-config::MAX_STEERING_ANGLE, config::MAX_STEERING_ANGLE);
 
                 let payload = serde_json::to_vec(&ackermann::AckermannCommand {
                     steering_angle,
-                    speed: 0.0
+                    speed: speed
                 }).unwrap();
                 
                 session.put(config::ACKERMANN_KEY, payload).await.unwrap();

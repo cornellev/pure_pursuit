@@ -8,10 +8,18 @@ pub const LOOKAHEAD : unit::Unit = unit::Unit::new(
 );
 
 pub const WHEELBASE : unit::Unit = unit::Unit::new(
-    0.5, 
+    0.660, 
     unit::UnitType::Meters
 );
+
+pub const DEFAULT_SPEED : unit::Unit = unit::Unit::new(
+    1.0,
+    unit::UnitType::Meters
+); // in m/s
 
 pub const TRAJECTORY_KEY : &str = "cev/planning/ref_trajectory";
 pub const ACKERMANN_KEY : &str = "cev/commands/control";
 pub const POSE_KEY : &str = "cev/localization/pose";
+pub const SPEED_KEY : &str = "cev/config/speed";
+
+pub const MAX_STEERING_ANGLE : f64 = ((20.) / 180.) * std::f64::consts::PI; // in radians

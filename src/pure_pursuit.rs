@@ -1,8 +1,15 @@
 use crate::config::{LOOKAHEAD, WHEELBASE};
 use crate::loc;
-use crate::unit::Unit;
+use std::f64::consts::PI;
 
-
+fn wrap_angle(angle: f64) -> f64 {
+    let wrapped = angle.rem_euclid(2.0 * PI);
+    if wrapped > PI {
+        wrapped - 2.0 * PI
+    } else {
+        wrapped
+    }
+}
 
 pub fn pure_pursuit(pose: loc::Pose, path: Vec<loc::Pose>) -> f64 {
     // find the closest point on the path to the current pose
@@ -30,11 +37,39 @@ pub fn pure_pursuit(pose: loc::Pose, path: Vec<loc::Pose>) -> f64 {
     }
 
     let target_point = path[target_idx];
-
-    let alpha = target_point.atan2() - pose.get_heading();
+    let loc = pose.get_location();
+    let target = target_point.get_location();
+    let dx = target.x() - loc.x();
+    let dy = target.y() - loc.y();
+    let alpha = wrap_angle(dy.atan2(dx) - pose.get_heading());
 
     let a = 2.0 * WHEELBASE.to_meters() * alpha.sin();
-    let steering_angle = a.atan2(LOOKAHEAD.to_meters());
+    a.atan2(LOOKAHEAD.to_meters())
+}
 
-    return steering_angle;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::loc::Pose;
+
+    #[test]
+    fn straight_ahead_is_zero_steer() {
+        let pose = Pose::new(0.0, 0.0, 0.0);
+        let path = vec![Pose::new(0.0, 0.0, 0.0), Pose::new(LOOKAHEAD.to_meters(), 0.0, 0.0)];
+        let steer = pure_pursuit(pose, path);
+        assert!(steer.abs() < 1e-9, "steer={steer}");
+    }
+
+    #[test]
+    fn left_target_is_positive_steer() {
+        // REP-103 +Y is left
+        let pose = Pose::new(0.0, 0.0, 0.0);
+        let path = vec![
+            Pose::new(0.0, 0.0, 0.0),
+            Pose::new(LOOKAHEAD.to_meters(), LOOKAHEAD.to_meters(), 0.0),
+        ];
+        let steer = pure_pursuit(pose, path);
+        assert!(steer > 0.0, "steer={steer}");
+    }
 }
