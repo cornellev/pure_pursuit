@@ -90,6 +90,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 let mut steering_angle = pure_pursuit::pure_pursuit(pose, traj.clone());
                 
                 steering_angle = steering_angle.clamp(-config::MAX_STEERING_ANGLE, config::MAX_STEERING_ANGLE);
+                steering_angle = steering_angle / config::MAX_STEERING_ANGLE; // normalize to [-1, 1]
+
+                speed = speed.clamp(0.0, config::MAX_CAR_SPEED) / config::MAX_CAR_SPEED; // clamp speed to [0, 1]
 
                 let payload = serde_json::to_vec(&ackermann::AckermannCommand {
                     steering_angle,
