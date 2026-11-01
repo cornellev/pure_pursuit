@@ -22,6 +22,6 @@ pub const ACKERMANN_KEY : &str = "cev/commands/control";
 pub const POSE_KEY : &str = "cev/localization/pose";
 pub const SPEED_KEY : &str = "cev/config/speed";
 
-pub const MAX_STEERING_ANGLE : f64 = ((20.) / 180.) * std::f64::consts::PI; // in radians
+pub const MAX_STEERING_ANGLE: f64 = 45.0_f64.to_radians();
 
 pub const MAX_CAR_SPEED : f64 = 2.0; // in m/s
