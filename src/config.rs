@@ -3,7 +3,7 @@ use crate::unit;
 
 // TODO: tune
 pub const LOOKAHEAD : unit::Unit = unit::Unit::new(
-    1.0, 
+    2.3, 
     unit::UnitType::Meters
 );
 
